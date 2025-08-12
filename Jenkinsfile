@@ -64,7 +64,7 @@ pipeline {
                     echo Current directory files:
                     dir
                     echo Deploying with Vercel...
-                    npx vercel --token %VERCEL_TOKEN% --prod --confirm > deploy.txt 2>&1
+                    npx vercel --token "%VERCEL_TOKEN%" --prod --confirm > deploy.txt 2>&1
                     type deploy.txt
                 '''
             }
