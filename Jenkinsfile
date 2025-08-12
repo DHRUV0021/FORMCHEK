@@ -3,13 +3,12 @@ pipeline {
 
     environment {
         VERCEL_TOKEN = credentials('8DqOKY0T1eFASXAfU5nVGl1u')
-        PATH = "${env.PATH};${env.APPDATA}\\npm"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo '📥 Checking out code...'
+                echo '🔥 Checking out code...'
                 git branch: 'master', url: 'https://github.com/DHRUV0021/FORMCHEK'
             }
         }
@@ -32,76 +31,54 @@ pipeline {
             steps {
                 echo '✅ Verifying build and Vercel config...'
                 bat '''
-                echo Build directory contents:
-                dir dist\\formchek
-
-                echo Vercel config:
-                if exist vercel.json (
-                    echo ✅ vercel.json found
-                    type vercel.json
-                ) else (
-                    echo ❌ vercel.json not found
-                )
-
-                echo Checking index.html:
-                if exist "dist\\formchek\\index.html" (
-                    echo ✅ index.html found in build
-                ) else (
-                    echo ❌ index.html not found
-                    exit /b 1
-                )
+                    echo Build directory contents:
+                    dir dist\\formchek
+                    echo Browser directory contents:
+                    dir dist\\formchek\\browser
+                    echo Current vercel.json:
+                    if exist vercel.json (
+                        echo ✅ vercel.json found
+                        type vercel.json
+                    ) else (echo ❌ vercel.json not found)
+                    echo Checking index.html in browser folder:
+                    if exist "dist\\formchek\\browser\\index.html" (
+                        echo ✅ index.html found in browser folder
+                    ) else (
+                        echo ❌ index.html not found in browser folder
+                        echo Checking in dist/formchek:
+                        if exist "dist\\formchek\\index.html" (
+                            echo ✅ index.html found in formchek
+                        ) else (
+                            echo ❌ index.html not found anywhere
+                            exit /b 1
+                        )
+                    )
                 '''
             }
         }
 
         stage('Deploy to Vercel') {
             steps {
-                echo '🚀 Deploying from root directory (using vercel.json config)...'
+                echo '🚀 Deploying to Vercel...'
                 bat '''
-                echo Current directory (should be root):
-                cd
-
-                echo Installing/checking Vercel CLI:
-                npm install -g vercel
-
-                echo Attempting deployment from root (this will use vercel.json):
-                npx vercel --prod --token %VERCEL_TOKEN% --confirm --yes > deploy.txt 2>&1 || echo NPX deployment attempted with code %ERRORLEVEL%
-
-                echo Deployment output:
-                if exist deploy.txt (
+                    echo Current directory files:
+                    dir
+                    echo Deploying with Vercel...
+                    npx vercel --token %VERCEL_TOKEN% --prod --confirm > deploy.txt 2>&1
                     type deploy.txt
-                    echo.
-                    echo Extracting deployment URL:
-                    findstr /C:"https://" deploy.txt > url.txt 2>nul
-                    if exist url.txt (
-                        echo ✅ Deployment URL found:
-                        type url.txt
-                    ) else (
-                        echo ⚠️ No URL found, but deployment may have succeeded
-                    )
-                ) else (
-                    echo ❌ Deploy.txt not created
-                )
                 '''
             }
         }
 
         stage('Verify Deployment') {
             steps {
-                echo '🔍 Checking deployment status...'
+                echo '🔍 Verifying deployment...'
                 bat '''
-                echo Checking if deployment was successful:
-                if exist url.txt (
-                    echo ✅ Deployment URL available
-                    type url.txt
-                ) else (
-                    echo Checking deploy.txt for any success indicators:
+                    echo Deployment completed!
                     if exist deploy.txt (
-                        findstr /C:"Deployment completed" deploy.txt
-                        findstr /C:"✅" deploy.txt
-                        findstr /C:"Ready" deploy.txt
+                        echo Final deployment logs:
+                        type deploy.txt
                     )
-                )
                 '''
             }
         }
@@ -110,32 +87,25 @@ pipeline {
     post {
         success {
             echo '🎉 Pipeline completed successfully!'
-            script {
-                try {
-                    def deployUrl = bat(script: 'if exist url.txt (type url.txt) else (echo No URL)', returnStdout: true).trim()
-                    if (deployUrl && deployUrl.contains('https://')) {
-                        echo "🌐 LIVE DEPLOYMENT URL: ${deployUrl}"
-                        echo "🔗 Your Angular Form Builder is now live!"
-                    } else {
-                        echo "✅ Deployment completed - check Vercel dashboard for URL"
-                    }
-                } catch (Exception e) {
-                    echo "Deployment may have succeeded - check Vercel dashboard"
-                }
-            }
-            archiveArtifacts artifacts: 'deploy.txt, url.txt', allowEmptyArchive: true
+            bat '''
+                echo ✅ Build successful
+                echo ✅ Deployment successful
+                if exist deploy.txt (
+                    echo Deployment URL:
+                    findstr /C:"https://" deploy.txt
+                )
+            '''
         }
-
         failure {
             echo '❌ Pipeline failed!'
             bat '''
-            echo Checking for any deployment logs:
-            if exist deploy.txt (
-                echo Deploy.txt contents:
-                type deploy.txt
-            )
-            echo Checking Vercel CLI status:
-            npx vercel --version 2>nul || echo Vercel CLI not available
+                echo Checking for any deployment logs:
+                if exist deploy.txt (
+                    echo Deploy.txt contents:
+                    type deploy.txt
+                )
+                echo Checking Vercel CLI status:
+                npx vercel --version 2>nul || echo Vercel CLI not available
             '''
         }
     }
