@@ -2,11 +2,8 @@ pipeline {
   agent any
 
   environment {
-    // Jenkins credentials id (Secret text) used above
-    VERCEL_TOKEN = credentials('8DqOKY0T1eFASXAfU5nVGl1u')
-    // OPTIONAL: set if you need scope/org/project; not required if using --cwd to dist
-    // VERCEL_ORG = 'your-vercel-org'
-    // VERCEL_PROJECT = 'your-vercel-project'
+    // Jenkins credentials id (Secret text)
+    VERCEL_TOKEN = credentials('dbQPRXp6njR9J18nOBRH0z91')
   }
 
   stages {
@@ -18,26 +15,34 @@ pipeline {
 
     stage('Install dependencies') {
       steps {
-        // runs on Windows agent
         bat 'npm install --legacy-peer-deps'
       }
     }
 
     stage('Build') {
       steps {
-        // Make sure this builds into dist/<appname>
         bat 'npm run build'
       }
     }
 
-   stage('Deploy to Vercel') {
-    steps {
+    stage('Deploy to Vercel') {
+      steps {
         bat """
-        npm install -g vercel
-        vercel --prod --token %VERCEL_TOKEN% --confirm --cwd dist/formchek > deploy.txt
-        type deploy.txt
+          npm install -g vercel
+          vercel --prod --token %VERCEL_TOKEN% --confirm --cwd dist/formchek > deploy.txt
+          type deploy.txt
         """
-    }
+        // Parse deploy.txt to extract URL (optional)
+        script {
+          def deployLog = readFile('deploy.txt')
+          def matcher = deployLog =~ /https:\\/\\/[^\\s]+/
+          if (matcher.find()) {
+            echo "Deployed URL: ${matcher.group(0)}"
+          } else {
+            echo "Could not find deployed URL in logs."
+          }
+        }
+      }
     }
   }
 
