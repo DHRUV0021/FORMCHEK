@@ -20,30 +20,24 @@ pipeline {
     }
 
     stage('Build') {
-      steps {
-        bat 'npm run build'
-      }
-    }
+  steps {
+    echo 'Starting build...'
+    bat 'npm run build'
+    echo 'Build completed.'
+  }
+}
 
-    stage('Deploy to Vercel') {
-      steps {
-        bat """
-          npm install -g vercel
-          vercel --prod --token %VERCEL_TOKEN% --confirm --cwd dist/formchek > deploy.txt
-          type deploy.txt
-        """
-        // Parse deploy.txt to extract URL (optional)
-        script {
-          def deployLog = readFile('deploy.txt')
-          def matcher = deployLog =~ /https:\\/\\/[^\\s]+/
-          if (matcher.find()) {
-            echo "Deployed URL: ${matcher.group(0)}"
-          } else {
-            echo "Could not find deployed URL in logs."
-          }
-        }
-      }
-    }
+stage('Deploy to Vercel') {
+  steps {
+    echo 'Starting deploy...'
+    bat '''
+      npm install -g vercel
+      vercel --prod --token %VERCEL_TOKEN% --confirm --cwd dist/formchek > deploy.txt
+      type deploy.txt
+    '''
+    echo 'Deploy completed.'
+  }
+}
   }
 
   post {
