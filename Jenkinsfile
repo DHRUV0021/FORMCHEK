@@ -12,7 +12,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        git url: 'https://github.com/your-username/your-angular-repo.git', branch: 'main'
+        git url: 'https://github.com/DHRUV0021/FORMCHEK', branch: 'master'
       }
     }
 
@@ -35,7 +35,7 @@ pipeline {
         // replace <app-name> with the folder name inside dist
         bat """
           npm install -g vercel
-          vercel --prod --token=%VERCEL_TOKEN% --confirm --cwd dist\\<app-name>
+          vercel --prod --token=%8DqOKY0T1eFASXAfU5nVGl1u% --confirm --cwd dist\\<Form_Builder>
         """
       }
     }
