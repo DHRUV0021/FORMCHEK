@@ -34,7 +34,15 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "./node_modules/bootstrap/dist/js/bootstrap.js",
+              "node_modules/jquery/dist/jquery.min.js",
+              "./node_modules/prismjs/prism.js",
+              "./node_modules/prismjs/components/prism-markup.min.js",
+              "./node_modules/prismjs/components/prism-json.min.js",
+              "./node_modules/prismjs/components/prism-javascript.min.js",
+              "./node_modules/prismjs/components/prism-typescript.min.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -91,12 +99,28 @@
               }
             ],
             "styles": [
-              "src/styles.scss"
+              "src/styles.scss",
+                "./node_modules/prism-themes/themes/prism-vs.css",
+                "./node_modules/font-awesome/css/font-awesome.css",
+                "./node_modules/bootswatch/dist/cosmo/_variables.scss",
+                "./node_modules/bootstrap/scss/bootstrap.scss",
+                "./node_modules/bootswatch/dist/cosmo/_bootswatch.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "./node_modules/bootstrap/dist/js/bootstrap.js",
+              "./node_modules/prismjs/prism.js",
+              "node_modules/jquery/dist/jquery.min.js",
+              "./node_modules/prismjs/components/prism-markup.min.js",
+              "./node_modules/prismjs/components/prism-json.min.js",
+              "./node_modules/prismjs/components/prism-javascript.min.js",
+              "./node_modules/prismjs/components/prism-typescript.min.js"
+            ]
           }
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "dad2bfef-a993-47f4-a943-3e16ae74595b"
   }
 }
