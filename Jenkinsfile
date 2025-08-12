@@ -30,15 +30,13 @@ pipeline {
       }
     }
 
-    stage('Deploy to Vercel') {
-      steps {
-        // replace <app-name> with the folder name inside dist
+   stage('Deploy to Vercel') {
+    steps {
         bat """
-          npm install -g vercel
-          vercel --prod --token=%8DqOKY0T1eFASXAfU5nVGl1u% --confirm --cwd dist\\<Form_Builder>
+        vercel --prod --token %8DqOKY0T1eFASXAfU5nVGl1u% --confirm --cwd dist/formchek
         """
-      }
     }
+  }
   }
 
   post {
