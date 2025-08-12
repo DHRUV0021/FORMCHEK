@@ -19,7 +19,7 @@ pipeline {
     stage('Install dependencies') {
       steps {
         // runs on Windows agent
-        bat 'npm ci'
+        bat 'npm install --legacy-peer-deps'
       }
     }
 
