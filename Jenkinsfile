@@ -1,51 +1,94 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    // Jenkins credentials id (Secret text)
-    VERCEL_TOKEN = credentials('dbQPRXp6njR9J18nOBRH0z91')
-  }
-
-  stages {
-    stage('Checkout') {
-      steps {
-        git url: 'https://github.com/DHRUV0021/FORMCHEK', branch: 'master'
-      }
+    environment {
+        // Jenkins credentials se Vercel token load karo
+        VERCEL_TOKEN = credentials('8DqOKY0T1eFASXAfU5nVGl1u') // Ye ID change karo apne credentials ke according
+        NODE_VERSION = '18' // Node.js version specify karo
     }
 
-    stage('Install dependencies') {
-      steps {
-        bat 'npm install --legacy-peer-deps'
-      }
+    tools {
+        nodejs "${NODE_VERSION}" // Jenkins mein Node.js plugin install karna hoga
     }
 
-    stage('Build') {
-  steps {
-    echo 'Starting build...'
-    bat 'npm run build'
-    echo 'Build completed.'
-  }
-}
+    stages {
+        stage('Cleanup Workspace') {
+            steps {
+                echo 'Cleaning workspace...'
+                deleteDir()
+            }
+        }
 
-stage('Deploy to Vercel') {
-  steps {
-    echo 'Starting deploy...'
-    bat '''
-      npm install -g vercel
-      vercel --prod --token %VERCEL_TOKEN% --confirm --cwd dist/formchek > deploy.txt
-      type deploy.txt
-    '''
-    echo 'Deploy completed.'
-  }
-}
-  }
+        stage('Checkout Code') {
+            steps {
+                echo 'Checking out code from GitHub...'
+                git branch: 'master', url: 'https://github.com/DHRUV0021/FORMCHEK'
+            }
+        }
 
-  post {
-    success {
-      echo 'Deployed to Vercel successfully!'
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing npm dependencies...'
+                script {
+                    if (isUnix()) {
+                        sh 'npm install --legacy-peer-deps'
+                    } else {
+                        bat 'npm install --legacy-peer-deps'
+                    }
+                }
+            }
+        }
+
+        stage('Build Angular App') {
+            steps {
+                echo 'Building Angular application...'
+                script {
+                    if (isUnix()) {
+                        sh 'npm run build --prod'
+                    } else {
+                        bat 'npm run build --prod'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Vercel') {
+            steps {
+                echo 'Deploying to Vercel...'
+                script {
+                    if (isUnix()) {
+                        sh '''
+                            npm install -g vercel
+                            cd dist/formchek
+                            vercel --prod --token ${VERCEL_TOKEN} --confirm --yes > ../deploy.txt
+                            cat ../deploy.txt
+                        '''
+                    } else {
+                        bat '''
+                            npm install -g vercel
+                            cd dist\\formchek
+                            vercel --prod --token %VERCEL_TOKEN% --confirm --yes > ..\\deploy.txt
+                            type ..\\deploy.txt
+                        '''
+                    }
+                }
+            }
+        }
     }
-    failure {
-      echo 'Build or deploy failed. Check console output.'
+
+    post {
+        success {
+            echo '✅ Successfully deployed to Vercel!'
+            // Optional: Archive deploy logs
+            archiveArtifacts artifacts: 'deploy.txt', allowEmptyArchive: true
+        }
+        failure {
+            echo '❌ Build or deployment failed!'
+            // Optional: Send notification
+        }
+        always {
+            echo 'Pipeline execution completed'
+            // Cleanup if needed
+        }
     }
-  }
 }
