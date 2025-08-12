@@ -60,13 +60,29 @@ pipeline {
         stage('Deploy to Vercel') {
             steps {
                 echo '🚀 Deploying to Vercel...'
-                bat '''
-                    echo Current directory files:
-                    dir
-                    echo Deploying with Vercel...
-                    npx vercel --token "%VERCEL_TOKEN%" --prod --confirm > deploy.txt 2>&1
-                    type deploy.txt
-                '''
+                script {
+                    try {
+                        bat '''
+                            echo Current directory files:
+                            dir
+                            echo Deploying with Vercel from browser folder...
+                            cd dist\\formchek\\browser
+                            npx vercel --token "%VERCEL_TOKEN%" --prod --confirm > ..\\..\\..\\deploy.txt 2>&1
+                        '''
+                    } catch (Exception e) {
+                        echo "Deployment failed, checking logs..."
+                    } finally {
+                        bat '''
+                            echo Deployment completed, checking logs:
+                            if exist deploy.txt (
+                                echo === Deploy.txt contents ===
+                                type deploy.txt
+                            ) else (
+                                echo deploy.txt not found!
+                            )
+                        '''
+                    }
+                }
             }
         }
 
