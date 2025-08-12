@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        // Vercel token credentials se load karo
-        VERCEL_TOKEN = credentials('8DqOKY0T1eFASXAfU5nVGl1u')
+        VERCEL_TOKEN = credentials('dbQPRXp6njR9J18nOBRH0z91')
     }
 
     stages {
@@ -36,15 +35,33 @@ pipeline {
             }
         }
 
+        // NEW: Install Vercel CLI separately
+        stage('Install Vercel CLI') {
+            steps {
+                echo 'Installing Vercel CLI...'
+                bat 'npm install -g vercel'
+                bat 'vercel --version'
+            }
+        }
+
+        // FIXED: Deploy stage with proper commands
         stage('Deploy to Vercel') {
             steps {
                 echo 'Deploying to Vercel...'
+                // Step 1: Check build directory exists
+                bat 'dir dist'
+                bat 'dir dist\\formchek'
+
+                // Step 2: Go to build directory and deploy
+                bat 'cd dist\\formchek && vercel --prod --token %VERCEL_TOKEN% --confirm --yes'
+
+                // Step 3: Create deploy.txt file with output (separate command)
                 bat '''
-                    npm install -g vercel
-                    cd dist\\formchek
-                    vercel --prod --token %VERCEL_TOKEN% --confirm --yes > ..\\deploy.txt
-                    cd ..
-                    type deploy.txt
+                cd dist\\formchek
+                vercel --prod --token %VERCEL_TOKEN% --confirm --yes > ..\\..\\deploy.txt
+                cd ..\\..
+                echo Deployment log created:
+                type deploy.txt
                 '''
             }
         }
@@ -57,7 +74,6 @@ pipeline {
         }
         failure {
             echo '❌ Build or deployment failed!'
-            echo 'Check the console output for details.'
         }
         always {
             echo 'Pipeline execution completed'
